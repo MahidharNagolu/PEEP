@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .result {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backend Test Dashboard</h1>
+    
+    <div class="container">
+        <h2>Registration</h2>
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <div id="regResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Login</h2>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Send Message</h2>
+        <input type="text" id="messageContent" placeholder="Message">
+        <button onclick="sendMessage()">Send Message</button>
+        <div id="messageResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Messages</h2>
+        <button onclick="getMessages()">Refresh Messages</button>
+        <div id="messagesResult" class="result"></div>
+    </div>
+
+    <script>
+        let token = '';
+        const API_URL = 'http://localhost:3000/api';
+
+        async function register() {
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('regUsername').value,
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('regResult').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('regResult').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        async function login() {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('loginUsername').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                const data = await response.json();
+                token = data.token;
+                document.getElementById('loginResult').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('loginResult').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        async function sendMessage() {
+            try {
+                const response = await fetch(`${API_URL}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        content: document.getElementById('messageContent').value
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('messageResult').innerText = JSON.stringify(data, null, 2);
+                getMessages(); // Refresh messages after sending
+            } catch (error) {
+                document.getElementById('messageResult').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        async function getMessages() {
+            try {
+                const response = await fetch(`${API_URL}/messages`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('messagesResult').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('messagesResult').innerText = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 
